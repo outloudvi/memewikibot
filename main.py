@@ -27,9 +27,11 @@ def view_jisfw_info(update, ctx):
         text = ""
         if len(obj["id"]) > 1:
             text += "这是一组梗，包括{}\n".format("|".join(obj["id"]))
+        if "Entity" in smw:
         entities = list(map(lambda x: x["item"], smw["Entity"]))
         if len(entities):
             text += "实体：" + ", ".join(entities) + "\n"
+        if "Tag" in smw:
         tags = list(map(lambda x: x["item"], smw["Tag"]))
         if len(tags):
             text += "分类：#" + " , #".join(tags) + "\n"
