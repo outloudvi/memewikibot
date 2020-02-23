@@ -16,7 +16,7 @@ def view_jisfw_tag(update, ctx):
     )
     text = get_raw_text("JISFW:" + id)
     if text is None:
-        update.message.reply_text("MemeWiki 上没有此页。")
+        update.message.reply_markdown("MemeWiki 上没有此页。[在此创建](https://meme.outv.im/wiki/JISFW:{}&action=edit)。".format(id))
     else:
         obj = parse_jisfw_text(text)
         if "redirect" in obj:
@@ -37,13 +37,13 @@ def view_jisfw_tag(update, ctx):
 
 
 def add_jisfw_tag(update, ctx):
-    update.message.reply_text(
-        "此功能尚未完成。可到 https://meme.outv.im/wiki/JISFW:{} 修改。".format(ctx.args[0])
+    update.message.reply_markdown(
+        "此功能尚未完成，但可在 [这里](https://meme.outv.im/wiki/JISFW:{}) 修改标签。".format(ctx.args[0])
     )
 
 def search_jisfw_tag(update, ctx):
-    update.message.reply_text(
-        "此功能尚未完成。可到 https://meme.outv.im/wiki/Special:Search/{} 查看搜索结果。".format(ctx.args[0])
+    update.message.reply_markdown(
+        "此功能尚未完成，但可在 [这里](https://meme.outv.im/wiki/Special:Search/{}) 查看搜索结果。".format(ctx.args[0])
     )
 
 updater = Updater(apikey, use_context=True)
