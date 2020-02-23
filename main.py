@@ -39,7 +39,8 @@ def view_jisfw_info(update, ctx):
             if len(entities):
                 text += "实体：" + ", ".join(entities) + "\n"
         if "Tag" in smw:
-            tags = list(map(lambda x: x["item"], smw["Tag"]))
+            tags = list(
+                map(lambda x: x["item"].replace("#0##", ""), smw["Tag"]))
             if len(tags):
                 text += "分类：#" + " , #".join(tags) + "\n"
         if "Source" in smw:
