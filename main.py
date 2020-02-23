@@ -5,8 +5,7 @@ from telegram.utils.helpers import escape_markdown
 from memewiki import get_raw_text, get_raw_page, get_smw_object, search_smw_query, commit_edit
 from utils import parse_jisfw_text
 from config import apikey
-from tinydb import write as db_write
-from tinydb import read as db_read
+import tinydb as db
 from uuid import uuid4
 import json
 
@@ -63,25 +62,25 @@ def add_jisfw_tag(update, ctx):
         return
     if smw == {}:
         # Page doesn't exist
-        keyboard = [[InlineKeyboardButton("Yes", callback_data=db_write({
+        keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "create_page",
             "pagename": pagename,
             "jisfw_id": meme_id,
             "tag_to_add": tag_to_add
         })),
-            InlineKeyboardButton("No", callback_data=db_write({
+            InlineKeyboardButton("No", callback_data=db.write_tmp({
                 "action": ""
             }))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text(
             '此页 {} 不存在。要创建并添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(pagename, tag_to_add), reply_markup=reply_markup)
     else:
-        keyboard = [[InlineKeyboardButton("Yes", callback_data=db_write({
+        keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "add_tag",
             "pagename": pagename,
             "tag_to_add": tag_to_add
         })),
-            InlineKeyboardButton("No", callback_data=db_write({
+            InlineKeyboardButton("No", callback_data=db.write_tmp({
                 "action": ""
             }))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -91,7 +90,7 @@ def add_jisfw_tag(update, ctx):
 
 def add_jisfw_tag_handler(update, ctx):
     query = update.callback_query
-    data = db_read(update.callback_query.data)
+    data = db.read_tmp(update.callback_query.data)
     if data["action"] == "create_page":
         query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}。".format(
             data["pagename"], data["tag_to_add"]))
@@ -108,7 +107,7 @@ def add_jisfw_tag_handler(update, ctx):
 
 def search_prop(update, ctx, prop):
     print("Searching", prop, ctx.args[0])
-    if typeof(prop) == list:
+    if type(prop) == list:
         result = search_smw_query(" OR".join(
             list(map(lambda x: "[[{}::{}]]".format(x, ctx.args[0])))))
     else:
@@ -160,6 +159,7 @@ def inline_handler(update, context):
             )))
     update.inline_query.answer(results)
 
+db.load("db.json")
 
 updater = Updater(apikey, use_context=True)
 
@@ -175,3 +175,5 @@ updater.dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
 updater.idle()
+
+db.save("db.json")
