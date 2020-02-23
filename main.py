@@ -34,7 +34,8 @@ def view_jisfw_info(update, ctx):
         if len(obj["id"]) > 1:
             text += "这是一组梗，包括{}\n".format("|".join(obj["id"]))
         if "Entity" in smw:
-            entities = list(map(lambda x: x["item"].replace("#0##",""), smw["Entity"]))
+            entities = list(
+                map(lambda x: x["item"].replace("#0##", ""), smw["Entity"]))
             if len(entities):
                 text += "实体：" + ", ".join(entities) + "\n"
         if "Tag" in smw:
@@ -92,17 +93,19 @@ def add_jisfw_tag_handler(update, ctx):
     query = update.callback_query
     data = db.read_tmp(update.callback_query.data)
     if data["action"] == "create_page":
-        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}。".format(
+        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}...".format(
             data["pagename"], data["tag_to_add"]))
         commit_edit(data, update.callback_query.from_user)
-        query.edit_message_text(text="已完成。")
+        query.edit_message_text(text="已经创建页面 {} 并添加标签 #{}... 完成。".format(
+            data["pagename"], data["tag_to_add"]))
     elif data["action"] == "add_tag":
-        query.edit_message_text(text="正在添加标签 #{} 至 {}。".format(
+        query.edit_message_text(text="正在添加标签 #{} 至 {}...".format(
             data["tag_to_add"], data["pagename"]))
         commit_edit(data, update.callback_query.from_user)
-        query.edit_message_text(text="已完成。")
+        query.edit_message_text(text="正在添加标签 #{} 至 {}... 完成。".format(
+            data["tag_to_add"], data["pagename"]))
     else:
-        query.edit_message_text(text="操作已结束。")
+        query.edit_message_text(text="操作已结束。什么都没有发生。")
 
 
 def search_prop(update, ctx, prop):
@@ -158,6 +161,7 @@ def inline_handler(update, context):
                 "#" + query + ": 啥都妹有"
             )))
     update.inline_query.answer(results)
+
 
 db.load("db.json")
 
