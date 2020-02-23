@@ -64,8 +64,9 @@ def add_jisfw_tag(update, ctx):
     for tag in tags_to_add:
         if "Tag" in smw and tag in smw["Tag"]:
             update.message.reply_markdown(
-                "#{} 已存在于 {} 中。".format(tag_to_add, pagename))
+                "#{} 已存在于 {} 中。".format(tag, pagename))
             return
+    base = ""
     if smw == {}:
         # Page doesn't exist
         keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
@@ -78,8 +79,7 @@ def add_jisfw_tag(update, ctx):
                 "action": ""
             }))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text(
-            '此页 {} 不存在。要创建并添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(pagename, tag_to_add), reply_markup=reply_markup)
+        base = '此页 {} 不存在。'.format(pagename)
     else:
         keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "add_tag",
@@ -90,8 +90,9 @@ def add_jisfw_tag(update, ctx):
                 "action": ""
             }))]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text(
-            '{} 已确定。要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(pagename, tag_to_add), reply_markup=reply_markup)
+        base = '{} 已确定。'.format(pagename)
+    update.message.reply_text(
+        base + '要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(", #".join(tags_to_add)), reply_markup=reply_markup)
 
 
 def add_jisfw_tag_handler(update, ctx):
