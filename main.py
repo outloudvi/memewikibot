@@ -16,7 +16,7 @@ def view_jisfw_tag(update, ctx):
     )
     text = get_raw_text("JISFW:" + id)
     if text is None:
-        update.message.reply_markdown("MemeWiki 上没有此页。[在此创建](https://meme.outv.im/wiki/JISFW:{}&action=edit)。".format(id))
+        update.message.reply_markdown("MemeWiki 上没有此页。[在此创建](https://meme.outv.im/wiki/JISFW:{}?action=edit)。".format(id))
     else:
         obj = parse_jisfw_text(text)
         if "redirect" in obj:
