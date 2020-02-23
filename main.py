@@ -98,20 +98,21 @@ def add_jisfw_tag(update, ctx):
 def add_jisfw_tag_handler(update, ctx):
     query = update.callback_query
     data = db.read_tmp(update.callback_query.data)
+    tag_list_str = "#" + ", #".join(data["tags_to_add"])
+    basetext = ""
     if data["action"] == "create_page":
-        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}...".format(
-            data["pagename"], data["tag_to_add"]))
-        commit_edit(data, update.callback_query.from_user)
-        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}... 完成。".format(
-            data["pagename"], ", #".join(data["tags_to_add"])))
+        basetext = "正在创建页面 {} 并添加标签 {}...".format(
+            data["pagename"], tag_list_str)
+
     elif data["action"] == "add_tag":
-        query.edit_message_text(text="正在添加标签 #{} 至 {}...".format(
-            ", #".join(data["tags_to_add"]), data["pagename"]))
-        commit_edit(data, update.callback_query.from_user)
-        query.edit_message_text(text="正在添加标签 #{} 至 {}... 完成。".format(
-            ", #".join(data["tags_to_add"]), data["pagename"]))
+        basetext = "正在向 {} 添加标签 {}...".format(
+            data["pagename"], tag_list_str)
     else:
         query.edit_message_text(text="操作已结束。什么都没有发生。")
+        return
+    query.edit_message_text(text=basetext)
+    commit_edit(data, update.callback_query.from_user)
+    query.edit_message_text(text=basetext + " 完成。")
 
 
 def search_prop(update, ctx, prop):
