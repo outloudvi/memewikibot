@@ -37,22 +37,22 @@ def view_jisfw_tag(update, ctx):
 
 
 def add_jisfw_tag(update, ctx):
-    id = ctx.args[0]
     update.message.reply_text(
-        "正在 MemeWiki 搜索 t.me/JISFW/{} ...".format(id)
+        "此功能尚未完成。可到 https://meme.outv.im/wiki/JISFW:{} 修改。".format(ctx.args[0])
     )
-    page = get_raw_page("JISFW:"+id)
-    if page is None:
-        update.message.reply_text("MemeWiki 上没有此页。")
-    # else:
-    #     update.message.reply_text(parse_jisfw_text(text))
 
+def search_jisfw_tag(update, ctx):
+    update.message.reply_text(
+        "此功能尚未完成。可到 https://meme.outv.im/wiki/Special:Search/{} 查看搜索结果。".format(ctx.args[0])
+    )
 
 updater = Updater(apikey, use_context=True)
 
 updater.dispatcher.add_handler(CommandHandler('hello', hello))
 updater.dispatcher.add_handler(CommandHandler('tagof', view_jisfw_tag))
+updater.dispatcher.add_handler(CommandHandler('tag', search_jisfw_tag))
 updater.dispatcher.add_handler(CommandHandler('addtag', add_jisfw_tag))
+updater.dispatcher.add_handler(CommandHandler('deltag', add_jisfw_tag))
 
 updater.start_polling()
 updater.idle()
