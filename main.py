@@ -1,10 +1,13 @@
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, InlineQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, ParseMode, \
+    InputTextMessageContent
+from telegram.utils.helpers import escape_markdown
 from memewiki import get_raw_text, get_raw_page, get_smw_object, search_smw_query, commit_edit
 from utils import parse_jisfw_text
 from config import apikey
 from tinydb import write as db_write
 from tinydb import read as db_read
+from uuid import uuid4
 import json
 
 
@@ -130,6 +133,23 @@ def error_callback(update, context):
     print(context.error.args, context.error.with_traceback)
 
 
+def inline_handler(update, context):
+    """Handle the inline query."""
+    query = update.inline_query.query
+    if query == "":
+        update.inline_query.answer([])
+    lines = search_smw_query("[[Tag::{}]]".format(query))
+    results = []
+    for i in lines["results"]:
+        results.append(InlineQueryResultArticle(
+            id=uuid4(),
+            title=i,
+            input_message_content=InputTextMessageContent(
+                "t.me/" + i.replace(":", "/")
+            )))
+    update.inline_query.answer(results)
+
+
 updater = Updater(apikey, use_context=True)
 
 updater.dispatcher.add_handler(CommandHandler('hello', hello))
@@ -139,6 +159,7 @@ updater.dispatcher.add_handler(CommandHandler('tag', search_jisfw_tag))
 updater.dispatcher.add_handler(CommandHandler('source', search_jisfw_source))
 updater.dispatcher.add_handler(CommandHandler('addtag', add_jisfw_tag))
 updater.dispatcher.add_handler(CallbackQueryHandler(add_jisfw_tag_handler))
+updater.dispatcher.add_handler(InlineQueryHandler(inline_handler))
 updater.dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
