@@ -145,7 +145,7 @@ def inline_handler(update, context):
             id=uuid4(),
             title=i,
             input_message_content=InputTextMessageContent(
-                "t.me/" + i.replace(":", "/")
+                "#" + query + ": t.me/" + i.replace(":", "/")
             )))
     update.inline_query.answer(results)
 
