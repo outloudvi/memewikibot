@@ -147,6 +147,12 @@ def inline_handler(update, context):
             input_message_content=InputTextMessageContent(
                 "#" + query + ": t.me/" + i.replace(":", "/")
             )))
+    if len(results) == 0:
+        results.append(InlineQueryResultArticle(
+            id=uuid4(),
+            title="啥都妹有", input_message_content=InputTextMessageContent(
+                "#" + query + ": 啥都妹有"
+            )))
     update.inline_query.answer(results)
 
 
