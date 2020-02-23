@@ -9,7 +9,7 @@ def hello(update, context):
         'Hello {}'.format(update.message.from_user.first_name))
 
 
-def view_jisfw_tag(update, ctx):
+def view_jisfw_info(update, ctx):
     id = ctx.args[0]
     update.message.reply_text(
         "正在 MemeWiki 搜索 t.me/JISFW/{} ...".format(id)
@@ -27,12 +27,11 @@ def view_jisfw_tag(update, ctx):
         text = ""
         if len(obj["id"]) > 1:
             text += "这是一组梗，包括{}\n".format("|".join(obj["id"]))
-        entities = list(map(lambda x: x["item"], smw["Entity"]))
+        entities = list(map(lambda x:x["item"],smw["Entity"]))
         if len(entities):
             text += "实体：" + ", ".join(entities) + "\n"
-        tags = list(map(lambda x: x["item"], smw["Tag"]))
-        if len(tags):
-            text += "分类：#" + " , #".join(tags) + "\n"
+        if len(obj["categories"]):
+            text += "分类：#" + " , #".join(obj["categories"]) + "\n"
         if "Source" in smw:
             text += "来源：" + smw["Source"][0]["item"]
         if text == "":
@@ -55,7 +54,7 @@ def search_jisfw_tag(update, ctx):
 updater = Updater(apikey, use_context=True)
 
 updater.dispatcher.add_handler(CommandHandler('hello', hello))
-updater.dispatcher.add_handler(CommandHandler('tagof', view_jisfw_tag))
+updater.dispatcher.add_handler(CommandHandler('info', view_jisfw_info))
 updater.dispatcher.add_handler(CommandHandler('tag', search_jisfw_tag))
 updater.dispatcher.add_handler(CommandHandler('addtag', add_jisfw_tag))
 updater.dispatcher.add_handler(CommandHandler('deltag', add_jisfw_tag))
