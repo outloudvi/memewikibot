@@ -113,7 +113,7 @@ def search_prop(update, ctx, prop):
     print("Searching", prop, ctx.args[0])
     if type(prop) == list:
         result = search_smw_query(" OR".join(
-            list(map(lambda x: "[[{}::{}]]".format(x, ctx.args[0])))))
+            list(map(lambda x: "[[{}::{}]]".format(x, ctx.args[0]), prop))))
     else:
         result = search_smw_query("[[{}::{}]]".format(prop, ctx.args[0]))
     update.message.reply_markdown(
