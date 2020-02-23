@@ -1,7 +1,11 @@
-from telegram.ext import Updater, CommandHandler
-from memewiki import get_raw_text, get_raw_page, get_smw_object, search_smw_query
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from memewiki import get_raw_text, get_raw_page, get_smw_object, search_smw_query, commit_edit
 from utils import parse_jisfw_text
 from config import apikey
+from tinydb import write as db_write
+from tinydb import read as db_read
+import json
 
 
 def hello(update, context):
@@ -28,13 +32,13 @@ def view_jisfw_info(update, ctx):
         if len(obj["id"]) > 1:
             text += "这是一组梗，包括{}\n".format("|".join(obj["id"]))
         if "Entity" in smw:
-        entities = list(map(lambda x: x["item"], smw["Entity"]))
-        if len(entities):
-            text += "实体：" + ", ".join(entities) + "\n"
+            entities = list(map(lambda x: x["item"], smw["Entity"]))
+            if len(entities):
+                text += "实体：" + ", ".join(entities) + "\n"
         if "Tag" in smw:
-        tags = list(map(lambda x: x["item"], smw["Tag"]))
-        if len(tags):
-            text += "分类：#" + " , #".join(tags) + "\n"
+            tags = list(map(lambda x: x["item"], smw["Tag"]))
+            if len(tags):
+                text += "分类：#" + " , #".join(tags) + "\n"
         if "Source" in smw:
             text += "来源：" + smw["Source"][0]["item"]
         if text == "":
@@ -43,9 +47,60 @@ def view_jisfw_info(update, ctx):
 
 
 def add_jisfw_tag(update, ctx):
-    update.message.reply_markdown(
-        "此功能尚未完成，但可在 [这里](https://meme.outv.im/wiki/JISFW:{}) 修改标签。".format(ctx.args[0])
-    )
+    if len(ctx.args) < 2:
+        update.message.reply_markdown("用法： /addtag ID 标签名")
+        return
+    meme_id = ctx.args[0]
+    tag_to_add = ctx.args[1]
+    pagename = "JISFW:" + meme_id
+    smw = get_smw_object(pagename)
+    if "Tag" in smw and tag_to_add in smw["Tag"]:
+        update.message.reply_markdown(
+            "#{} 已存在于 {} 中。".format(tag_to_add, pagename))
+        return
+    if smw == {}:
+        # Page doesn't exist
+        keyboard = [[InlineKeyboardButton("Yes", callback_data=db_write({
+            "action": "create_page",
+            "pagename": pagename,
+            "jisfw_id": meme_id,
+            "tag_to_add": tag_to_add
+        })),
+            InlineKeyboardButton("No", callback_data=db_write({
+                "action": ""
+            }))]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            '此页 {} 不存在。要创建并添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(pagename, tag_to_add), reply_markup=reply_markup)
+    else:
+        keyboard = [[InlineKeyboardButton("Yes", callback_data=db_write({
+            "action": "add_tag",
+            "pagename": pagename,
+            "tag_to_add": tag_to_add
+        })),
+            InlineKeyboardButton("No", callback_data=db_write({
+                "action": ""
+            }))]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            '{} 已确定。要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(pagename, tag_to_add), reply_markup=reply_markup)
+
+
+def add_jisfw_tag_handler(update, ctx):
+    query = update.callback_query
+    data = db_read(update.callback_query.data)
+    if data["action"] == "create_page":
+        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}。".format(
+            data["pagename"], data["tag_to_add"]))
+        commit_edit(data, update.callback_query.from_user)
+        query.edit_message_text(text="已完成。")
+    elif data["action"] == "add_tag":
+        query.edit_message_text(text="正在添加标签 #{} 至 {}。".format(
+            data["tag_to_add"], data["pagename"]))
+        commit_edit(data, update.callback_query.from_user)
+        query.edit_message_text(text="已完成。")
+    else:
+        query.edit_message_text(text="操作已结束。")
 
 
 def search_prop(update, ctx, prop):
@@ -62,12 +117,17 @@ def search_prop(update, ctx, prop):
 def search_jisfw_entity(update, ctx):
     search_prop(update, ctx, "Entity")
 
+
 def search_jisfw_tag(update, ctx):
     search_prop(update, ctx, "Tag")
 
 
 def search_jisfw_source(update, ctx):
     search_prop(update, ctx, "Source")
+
+
+def error_callback(update, context):
+    print(context.error.args, context.error.with_traceback)
 
 
 updater = Updater(apikey, use_context=True)
@@ -78,7 +138,8 @@ updater.dispatcher.add_handler(CommandHandler('entity', search_jisfw_entity))
 updater.dispatcher.add_handler(CommandHandler('tag', search_jisfw_tag))
 updater.dispatcher.add_handler(CommandHandler('source', search_jisfw_source))
 updater.dispatcher.add_handler(CommandHandler('addtag', add_jisfw_tag))
-updater.dispatcher.add_handler(CommandHandler('deltag', add_jisfw_tag))
+updater.dispatcher.add_handler(CallbackQueryHandler(add_jisfw_tag_handler))
+updater.dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
 updater.idle()
