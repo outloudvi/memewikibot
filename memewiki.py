@@ -1,9 +1,31 @@
 import mwclient
+import json
 from config import conf
 
 site = mwclient.Site("meme.outv.im", "/")
 site.login(conf["username"], conf["password"])
 print("[wiki] Login succeed as", conf["username"])
+
+
+def get_smw_object(title, ns=0):
+    data = site.api("smwbrowse", browse="subject",
+                    params=json.dumps({"subject": title, "ns": ns}))
+    properties = data.get("query").get("data")
+    ret = {}
+    for prop in properties:
+        retpart = []
+        key = prop.get("property")
+        for value in prop.get("dataitem"):
+            retpart.append(dict(value))
+        ret[key] = retpart
+    return ret
+
+
+def get_property_of(title, prop, ns=0):
+    obj = get_smw_object(title, ns)
+    if prop in obj:
+        return list(map(lambda x: x["item"], obj[prop]))
+    return []
 
 
 def get_raw_page(title):
