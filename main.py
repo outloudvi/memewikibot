@@ -108,7 +108,11 @@ def add_jisfw_tag_handler(update, ctx):
 
 def search_prop(update, ctx, prop):
     print("Searching", prop, ctx.args[0])
-    result = search_smw_query("[[{}::{}]]".format(prop, ctx.args[0]))
+    if typeof(prop) == list:
+        result = search_smw_query(" OR".join(
+            list(map(lambda x: "[[{}::{}]]".format(x, ctx.args[0])))))
+    else:
+        result = search_smw_query("[[{}::{}]]".format(prop, ctx.args[0]))
     update.message.reply_markdown(
         "搜索 **{}::{}** \n".format(prop, ctx.args[0]) +
         "结果：\n" + "\n".join(list(map(lambda x: "[{}](t.me/{})".format(x, x.replace(":", "/")), result["results"]))) + "\n\n" +
@@ -122,7 +126,7 @@ def search_jisfw_entity(update, ctx):
 
 
 def search_jisfw_tag(update, ctx):
-    search_prop(update, ctx, "Tag")
+    search_prop(update, ctx, ["Tag", "Entity"])
 
 
 def search_jisfw_source(update, ctx):
@@ -138,14 +142,15 @@ def inline_handler(update, context):
     query = update.inline_query.query
     if query == "":
         update.inline_query.answer([])
-    lines = search_smw_query("[[Tag::{}]]".format(query))
+    lines = search_smw_query(
+        "[[Tag::{}]] OR [[Entity::{}]]".format(query, query))
     results = []
     for i in lines["results"]:
         results.append(InlineQueryResultArticle(
             id=uuid4(),
             title=i,
             input_message_content=InputTextMessageContent(
-                "#" + query + ": t.me/" + i.replace(":", "/")
+                "#" + query + ": t.me/" + i.replace(":", "/"), parse_mode="Markdown"
             )))
     if len(results) == 0:
         results.append(InlineQueryResultArticle(
