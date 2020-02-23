@@ -30,7 +30,7 @@ def view_jisfw_info(update, ctx):
         if "redirect" in obj:
             update.message.reply_text("这是一个重定向页面。请参见 " + obj["redirect"] + "。")
             return
-        text = ""
+        text = "JISFW:{}".format(id)
         if len(obj["id"]) > 1:
             text += "这是一组梗，包括{}\n".format("|".join(obj["id"]))
         if "Entity" in smw:
@@ -55,6 +55,9 @@ def add_jisfw_tag(update, ctx):
         update.message.reply_markdown("用法： /addtag ID 标签名")
         return
     meme_id = ctx.args[0]
+    if not meme_id.isnumeric():
+        update.message.reply_markdown("ID 应是一个数字。")
+        return
     tag_to_add = ctx.args[1]
     pagename = "JISFW:" + meme_id
     smw = get_smw_object(pagename)
@@ -97,7 +100,7 @@ def add_jisfw_tag_handler(update, ctx):
         query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}...".format(
             data["pagename"], data["tag_to_add"]))
         commit_edit(data, update.callback_query.from_user)
-        query.edit_message_text(text="已经创建页面 {} 并添加标签 #{}... 完成。".format(
+        query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}... 完成。".format(
             data["pagename"], data["tag_to_add"]))
     elif data["action"] == "add_tag":
         query.edit_message_text(text="正在添加标签 #{} 至 {}...".format(
