@@ -69,11 +69,13 @@ def commit_edit(obj, user):
         print("No action here")
         return
     print(user)
+    tag_text = "\n".join(
+        list(map(lambda x: "[[Tag::{}| ]]".format(x), obj["tags_to_add"])))
     page = site.pages[obj["pagename"]]
     if obj["action"] == "create_page":
         print("Creating", obj["pagename"])
-        text = "{{{{JISFW|id={}}}}}\n{}[[Tag::{}| ]]".format(
-            obj["jisfw_id"], sep, obj["tag_to_add"])
+        text = "{{{{JISFW|id={}}}}}\n{}{}".format(
+            obj["jisfw_id"], sep, tag_text)
         page.save(text, summary='Edit from {}'.format(user.full_name))
         print("Done")
     elif obj["action"] == "add_tag":
@@ -84,9 +86,9 @@ def commit_edit(obj, user):
             idx = text.find(sep)
             prefix = text[0:idx]
             suffix = text[idx + len(sep):]
-            text = prefix + "[[Tag::{}| ]]".format(obj["tag_to_add"]) + suffix
+            text = prefix + sep + tag_text + suffix
         else:
             text += sep
-            text += "[[Tag::{}]]".format(obj["tag_to_add"])
+            text += tag_text
         page.save(text, summary='Edit from {}'.format(user.full_name))
         print("Done")

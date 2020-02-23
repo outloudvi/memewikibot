@@ -52,26 +52,27 @@ def view_jisfw_info(update, ctx):
 
 def add_jisfw_tag(update, ctx):
     if len(ctx.args) < 2:
-        update.message.reply_markdown("用法： /addtag ID 标签名")
+        update.message.reply_markdown("用法： /addtag ID ...标签名")
         return
     meme_id = ctx.args[0]
     if not meme_id.isnumeric():
         update.message.reply_markdown("ID 应是一个数字。")
         return
-    tag_to_add = ctx.args[1]
+    tags_to_add = ctx.args[1:]
     pagename = "JISFW:" + meme_id
     smw = get_smw_object(pagename)
-    if "Tag" in smw and tag_to_add in smw["Tag"]:
-        update.message.reply_markdown(
-            "#{} 已存在于 {} 中。".format(tag_to_add, pagename))
-        return
+    for tag in tags_to_add:
+        if "Tag" in smw and tag in smw["Tag"]:
+            update.message.reply_markdown(
+                "#{} 已存在于 {} 中。".format(tag_to_add, pagename))
+            return
     if smw == {}:
         # Page doesn't exist
         keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "create_page",
             "pagename": pagename,
             "jisfw_id": meme_id,
-            "tag_to_add": tag_to_add
+            "tags_to_add": tags_to_add
         })),
             InlineKeyboardButton("No", callback_data=db.write_tmp({
                 "action": ""
@@ -83,7 +84,7 @@ def add_jisfw_tag(update, ctx):
         keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "add_tag",
             "pagename": pagename,
-            "tag_to_add": tag_to_add
+            "tags_to_add": tags_to_add
         })),
             InlineKeyboardButton("No", callback_data=db.write_tmp({
                 "action": ""
@@ -101,13 +102,13 @@ def add_jisfw_tag_handler(update, ctx):
             data["pagename"], data["tag_to_add"]))
         commit_edit(data, update.callback_query.from_user)
         query.edit_message_text(text="正在创建页面 {} 并添加标签 #{}... 完成。".format(
-            data["pagename"], data["tag_to_add"]))
+            data["pagename"], ", #".join(data["tags_to_add"])))
     elif data["action"] == "add_tag":
         query.edit_message_text(text="正在添加标签 #{} 至 {}...".format(
-            data["tag_to_add"], data["pagename"]))
+            ", #".join(data["tags_to_add"]), data["pagename"]))
         commit_edit(data, update.callback_query.from_user)
         query.edit_message_text(text="正在添加标签 #{} 至 {}... 完成。".format(
-            data["tag_to_add"], data["pagename"]))
+            ", #".join(data["tags_to_add"]), data["pagename"]))
     else:
         query.edit_message_text(text="操作已结束。什么都没有发生。")
 
