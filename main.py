@@ -99,7 +99,11 @@ def add_jisfw_tag(update, ctx):
         reply_markup = InlineKeyboardMarkup(keyboard)
         base = '{} 已确定。'.format(pagename)
     update.message.reply_text(
-        base + '要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。'.format(", #".join(tags_to_add)), reply_markup=reply_markup)
+        base + '要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。\n[查看原文]({}) | [Wiki 页面]({})'.format(", #".join(
+            tags_to_add), "https://t.me/JISFW/" + meme_id, "https://meme.outv.im/wiki/JISFW:" + meme_id),
+        parse_mode=ParseMode.MARKDOWN,
+        disable_web_page_preview=True,
+        reply_markup=reply_markup)
 
 
 def add_jisfw_tag_handler(update, ctx):
@@ -107,7 +111,7 @@ def add_jisfw_tag_handler(update, ctx):
     data = db.read_tmp(update.callback_query.data)
     tag_list_str = ""
     if data["action"] != "":
-    tag_list_str = "#" + ", #".join(data["tags_to_add"])
+        tag_list_str = "#" + ", #".join(data["tags_to_add"])
     basetext = ""
     if data["action"] == "create_page":
         basetext = "正在创建页面 {} 并添加标签 {}...".format(
