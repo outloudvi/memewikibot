@@ -172,7 +172,7 @@ def inline_handler(update, context):
             id=uuid4(),
             title=i,
             input_message_content=InputTextMessageContent(
-                "#" + query + ": t.me/" + i.replace(":", "/"), parse_mode="Markdown"
+                "#" + query + ": t.me/" + i.replace(":", "/"), parse_mode=ParseMode.MARKDOWN
             )))
     if len(results) == 0:
         results.append(InlineQueryResultArticle(
