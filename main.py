@@ -1,4 +1,4 @@
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, InlineQueryHandler
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, InlineQueryHandler, MessageHandler, Filters
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResultArticle, ParseMode, \
     InputTextMessageContent
 from telegram.utils.helpers import escape_markdown
@@ -8,6 +8,7 @@ from config import apikey
 import tinydb as db
 from uuid import uuid4
 import json
+import re
 
 
 def hello(update, context):
@@ -15,8 +16,14 @@ def hello(update, context):
         'Hello {}'.format(update.message.from_user.first_name))
 
 
-def view_jisfw_info(update, ctx):
-    id = ctx.args[0]
+def view_jisfw_info(update, ctx, override_id=None):
+    id = -1
+    if ctx.args and len(ctx.args):
+        id = ctx.args[0]
+    if override_id:
+        id = override_id
+    if id == -1:
+        return
     update.message.reply_text(
         "正在 MemeWiki 搜索 t.me/JISFW/{} ...".format(id)
     )
@@ -170,6 +177,20 @@ def inline_handler(update, context):
     update.inline_query.answer(results)
 
 
+JISFW_REGEX = re.compile(r"JISFW[:/]([0-9]+)( \?)?", re.I)
+
+
+def check_pm_text(update, context):
+    if not update.message:
+        return
+    if update.message.chat.type == "private":
+        text = update.message.text
+        print(text)
+        match = JISFW_REGEX.search(text)
+        if match:
+            view_jisfw_info(update, context, match.group(1))
+
+
 db.load("db.json")
 
 updater = Updater(apikey, use_context=True)
@@ -182,6 +203,7 @@ updater.dispatcher.add_handler(CommandHandler('source', search_jisfw_source))
 updater.dispatcher.add_handler(CommandHandler('addtag', add_jisfw_tag))
 updater.dispatcher.add_handler(CallbackQueryHandler(add_jisfw_tag_handler))
 updater.dispatcher.add_handler(InlineQueryHandler(inline_handler))
+updater.dispatcher.add_handler(MessageHandler(Filters.text, check_pm_text))
 updater.dispatcher.add_error_handler(error_callback)
 
 updater.start_polling()
