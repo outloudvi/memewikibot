@@ -105,6 +105,8 @@ def add_jisfw_tag(update, ctx):
 def add_jisfw_tag_handler(update, ctx):
     query = update.callback_query
     data = db.read_tmp(update.callback_query.data)
+    tag_list_str = ""
+    if data["action"] != "":
     tag_list_str = "#" + ", #".join(data["tags_to_add"])
     basetext = ""
     if data["action"] == "create_page":
