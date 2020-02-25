@@ -20,3 +20,7 @@ def parse_jisfw_text(text):
                 if target.isdigit():
                     tags["id"].append(target)
     return tags
+
+
+def gen_wiki_jisfw_link(meme_id):
+    return "[查看原文]({}) | [Wiki 页面]({})".format("https://t.me/JISFW/" + meme_id, "https://meme.outv.im/wiki/JISFW:" + meme_id)

@@ -3,7 +3,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InlineQueryResu
     InputTextMessageContent
 from telegram.utils.helpers import escape_markdown
 from memewiki import get_raw_text, get_raw_page, get_smw_object, search_smw_query, commit_edit
-from utils import parse_jisfw_text
+from utils import parse_jisfw_text, gen_wiki_jisfw_link
 from config import apikey
 import tinydb as db
 from uuid import uuid4
@@ -91,6 +91,7 @@ def add_jisfw_tag(update, ctx):
         keyboard = [[InlineKeyboardButton("Yes", callback_data=db.write_tmp({
             "action": "add_tag",
             "pagename": pagename,
+            "jisfw_id": meme_id,
             "tags_to_add": tags_to_add
         })),
             InlineKeyboardButton("No", callback_data=db.write_tmp({
@@ -99,8 +100,8 @@ def add_jisfw_tag(update, ctx):
         reply_markup = InlineKeyboardMarkup(keyboard)
         base = '{} 已确定。'.format(pagename)
     update.message.reply_text(
-        base + '要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。\n[查看原文]({}) | [Wiki 页面]({})'.format(", #".join(
-            tags_to_add), "https://t.me/JISFW/" + meme_id, "https://meme.outv.im/wiki/JISFW:" + meme_id),
+        base + '要添加标签 #{} 么？注意，你的显示名将会出现在编辑摘要中。\n{}'.format(", #".join(
+            tags_to_add), gen_wiki_jisfw_link(meme_id)),
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True,
         reply_markup=reply_markup)
@@ -125,7 +126,8 @@ def add_jisfw_tag_handler(update, ctx):
         return
     query.edit_message_text(text=basetext)
     commit_edit(data, update.callback_query.from_user)
-    query.edit_message_text(text=basetext + " 完成。")
+    query.edit_message_text(
+        text=basetext + " 完成。\n{}".format(gen_wiki_jisfw_link(data["jisfw_id"])), parse_mode="markdown")
 
 
 def search_prop(update, ctx, prop):
